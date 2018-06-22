@@ -1,35 +1,136 @@
 ﻿
+
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>Kendo UI Snippet</title>
+    <base href="https://demos.telerik.com/kendo-ui/grid/editing-popup">
+    <style>
+        html {
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+    <title></title>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.620/styles/kendo.common-material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.620/styles/kendo.material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.620/styles/kendo.material.mobile.min.css" />
 
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.516/styles/kendo.common.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.516/styles/kendo.rtl.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.516/styles/kendo.silver.min.css" />
-    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2018.2.516/styles/kendo.mobile.all.min.css" />
+    <script src="https://kendo.cdn.telerik.com/2018.2.620/js/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2018.2.620/js/kendo.all.min.js"></script>
 
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-    <script src="https://kendo.cdn.telerik.com/2018.2.516/js/kendo.all.min.js"></script>
+
 </head>
 <body>
+    <div id="example">
+        <div id="grid"></div>
+    </div>
 
-    <div id="grid"></div>
     <script>
-        var dataSource = new kendo.data.DataSource({
-            transport: {
-                read: {
-                    type:"GET",
-                    url: "",
-                    dataType: "JSONP"
+        $(document).ready(function () {
+            var crudServiceBaseUrl = "http://localhost:57824/api";
+            var dataSource_tet = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: crudServiceBaseUrl + "/Products/Get",
+                        dataType: "json"
+                    },
+                    create: {
+                        url: crudServiceBaseUrl + "/Products/Create",
+                        type: "post"
+                    },
+                    update: {
+                        url: crudServiceBaseUrl + "/kendo/id",
+                        dataType: "json",
+                        type: "post"
+                    },
+                    destroy: {
+                        url: crudServiceBaseUrl + "/kendo/id",
+                        dataType: "json",
+                        type: "delecte"
+                    },
+                },
+                batch: true,
+                pageSize: 20,
+                schema: {
+                    model: {
+                        id: "ProductID",
+                        fields: {
+                            ProductID: { editable: false, nullable: true },
+                            ProductName: { validation: { required: true } },
+                            UnitPrice: {
+                                type: "number", validation: { required: true, min: 1 }
+                            }
+                        }
+                    }
                 }
-            },
-            pageSize: 10
+            });
+
+            $("#grid").kendoGrid({
+                dataSource:
+                    {
+                        transport: {
+                            read: {
+                                url: crudServiceBaseUrl + "/Products/Get",
+                            },
+                            create: {
+                                url: crudServiceBaseUrl + "/Products/Create",
+                                type: "post",
+                                complete: function (e) { $("#grid").data("kendoGrid").dataSource.read(); }
+                            },
+                            update: {
+                                url: crudServiceBaseUrl + "/Products/Update",
+                                dataType: "json",
+                                type: "post",
+                                complete: function (e) { $("#grid").data("kendoGrid").dataSource.read(); }
+                            },
+                            destroy: {
+                                url: crudServiceBaseUrl + "/Products/Destroy",
+                                dataType: "json",
+                                type: "post"
+                            },
+                        },
+                        pageSize: 20,
+                        schema: {
+                            model: {
+                                id: "ProductID",
+                                fields: {
+                                    ProductID: { editable: false, nullable: true },
+                                    ProductName: { validation: { required: true } },
+                                    UnitPrice: {
+                                        type: "number", validation: { required: true, min: 1 }
+                                    },
+                                    Description: { type: "string" },
+                                    ShelfDate: { type: "datetime" },
+                                    CategoryID: { type: "string" }
+
+                                }
+                            }
+                        }
+                    }
+                ,
+                pageable: true,
+                height: 550,
+                toolbar: ["create"],
+                columns: [
+                    { field: "ProductID", title: "編號", width: "80px" },
+                    { field: "ProductName", title: "名稱" },
+                    { field: "UnitPrice", title: "價格", format: "{0:c}", width: "100px" },
+                    { field: "Description", title: "描述", format: "{0:c}", width: "120px" },
+                    {
+                        field: "ShelfDate", title: "時間", format: "{0:c}", width: "180px"
+                    },
+
+                    { field: "CategoryID", title: "種類", format: "{0:c}", width: "80px" },
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }],
+                editable: "popup"
+            });
         });
-        $("#grid").kendoGrid({
-            dataSource: dataSource,
-            pageable: true
-        });
+
+        function customBoolEditor(container, options) {
+            var guid = kendo.guid();
+            $('<input class="k-checkbox" id="' + guid + '" type="checkbox" name="Discontinued" data-type="boolean" data-bind="checked:Discontinued">').appendTo(container);
+            $('<label class="k-checkbox-label" for="' + guid + '">​</label>').appendTo(container);
+        }
     </script>
 </body>
 </html>
